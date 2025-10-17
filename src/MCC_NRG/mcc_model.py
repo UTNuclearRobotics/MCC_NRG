@@ -18,7 +18,7 @@ import torch.nn.functional as F
 
 from timm.models.vision_transformer import PatchEmbed, Block, Mlp, DropPath
 
-from util.pos_embed import get_2d_sincos_pos_embed
+from .util.pos_embed import get_2d_sincos_pos_embed
 
 class MCCDecoderAttention(nn.Module):
     def __init__(self, dim, num_heads=8, qkv_bias=False, attn_drop=0., proj_drop=0., args=None):

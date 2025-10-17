@@ -11,10 +11,10 @@ from tqdm import tqdm
 import torch
 from pytorch3d.io.obj_io import load_obj
 
-import main_mcc
-import mcc_model
-import util.misc as misc
-from engine_mcc import prepare_data, generate_html
+from . import main_mcc
+from . import mcc_model
+from . import util.misc as misc
+from src.MCC_NRG.engine_mcc import prepare_data, generate_html
 
 
 def run_viz(model, samples, device, args, prefix):

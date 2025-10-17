@@ -20,8 +20,8 @@ import time
 import base64
 from io import BytesIO
 
-import util.misc as misc
-import util.lr_sched as lr_sched
+from .util import misc
+from .util import lr_sched
 
 from pytorch3d.structures import Pointclouds
 from pytorch3d.vis.plotly_vis import plot_scene

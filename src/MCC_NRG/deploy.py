@@ -1,12 +1,12 @@
-import mcc_model
-import util.misc as misc
+from . import mcc_model
+from .util import misc
 import cv2
 from pytorch3d.io.obj_io import load_obj
 import torch
 from tqdm import tqdm
-from engine_mcc import prepare_data, generate_html
+from src.MCC_NRG.engine_mcc import prepare_data, generate_html
 import numpy as np
-import main_mcc
+from . import main_mcc
 
 def generate_output(pred_occ, 
                     pred_rgb, 
@@ -120,24 +120,19 @@ def pad_image(im, value):
         diff = im.shape[1] - im.shape[0]
         return torch.cat([im, (torch.zeros((diff, im.shape[1], im.shape[2])) + value)], dim=0)
 
-def call_mcc(image, 
-             point_cloud, 
-             seg=None,
-             granularity=0.05, 
-             score_thresholds=[0.3],
-             temperature=0.1,
-             checkpoint='co3dv2_all_categories.pth',
-             outputs=None
+def predict(model,
+            device,
+            image, 
+            point_cloud, 
+            seg=None,
+            granularity=0.05, 
+            score_thresholds=[0.3],
+            temperature=0.1,
+            checkpoint='co3dv2_all_categories.pth',
+            outputs=None
     ):
     # Create args
     args = make_args(granularity, score_thresholds, temperature, checkpoint, outputs)
-    
-    # Get model
-    model = mcc_model.get_mcc_model(
-        occupancy_weight=1.0,
-        rgb_weight=0.01,
-        args=args,
-    ).cuda()
 
     misc.load_model(args=args, model_without_ddp=model, optimizer=None, loss_scaler=None)
 
@@ -153,7 +148,7 @@ def call_mcc(image,
         align_corners=False,
     )[0].permute(1, 2, 0)
 
-    seen_xyz = torch.from_numpy(point_cloud).to(torch.float32).reshape(H, W, 3) #obj[0].reshape(H, W, 3)
+    seen_xyz = torch.from_numpy(point_cloud).to(torch.float32).reshape(H, W, 3) 
     
     # Check for segmentation image
     if seg is not None:
@@ -198,4 +193,4 @@ def call_mcc(image,
     ]
     
     # Perform inference
-    return run_viz(model, sample, "cuda", args, prefix=args.output)
+    return run_viz(model, sample, device, args, prefix=args.output)
