@@ -26,7 +26,7 @@ from . import mcc_model
 from .util.misc import NativeScalerWithGradNormCount as NativeScaler
 from .util.hypersim_dataset import HyperSimDataset, hypersim_collate_fn
 from .util.co3d_dataset import CO3DV2Dataset, co3dv2_collate_fn
-from src.MCC_NRG.engine_mcc import train_one_epoch, run_viz, eval_one_epoch
+from .engine_mcc import train_one_epoch, run_viz, eval_one_epoch
 from .util.co3d_utils import get_all_dataset_maps
 
 

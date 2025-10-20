@@ -4,7 +4,7 @@ import cv2
 from pytorch3d.io.obj_io import load_obj
 import torch
 from tqdm import tqdm
-from src.MCC_NRG.engine_mcc import prepare_data, generate_html
+from .engine_mcc import prepare_data, generate_html
 import numpy as np
 from . import main_mcc
 
