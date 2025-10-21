@@ -40,19 +40,25 @@ def load_model(model_config_path: str,
     device = torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
 
     # Build model architecture
+    print("Building model...")
     model = get_mcc_model(**params.__dict__)
 
-    # Compile the model 
-    model = torch.compile(model)
-
     # Load checkpoint
+    print("Loading checkpoint...")
     ckpt = _load_checkpoint(model_checkpoint_path)
     state = _extract_state_dict(ckpt)
 
+    print("Loading state dict...")
     missing, unexpected = model.load_state_dict(state, strict=False)
     if missing or unexpected:
         print(f"MCC load_state_dict\n missing: {missing}\n unexpected: {unexpected}")
 
+
+    # Compile the model 
+    print("Compiling model...")
+    model = torch.compile(model)
+
+    print("Moving model to device...")
     model.to(device).eval()
 
     print(f"MCC model loaded on {device}")
