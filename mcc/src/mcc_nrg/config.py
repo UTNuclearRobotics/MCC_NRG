@@ -11,7 +11,7 @@ class ModelParams:
     occupancy_weight: float = 1.0
     rgb_weight: float = 0.01
     drop_path: float = 0.1
-    regress_color: bool = True
+    regress_color: bool = False
     granularity: float = 0.05
     score_thresholds: List[float] = field(default_factory=lambda: [0.3])
     temperature: float = 0.1
