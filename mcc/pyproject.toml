@@ -13,15 +13,8 @@ authors = [{name="Your Name", email="you@example.com"}]
 
 dependencies = [
   "numpy",
-  "torch",                 # or pin a CUDA wheel you know works
-  "Pillow",
+  "torch"                 # or pin a CUDA wheel you know works
 ]
-
-[project.optional-dependencies]
-dev = ["pytest", "ruff", "mypy"]
-
-[project.scripts]
-mcc = "mcc.cli:main"      # CLI entry point: `mcc ...`
 
 [tool.setuptools.packages.find]
 where = ["src"]
