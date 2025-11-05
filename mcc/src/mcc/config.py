@@ -16,6 +16,7 @@ class ModelParams:
     score_thresholds: List[float] = field(default_factory=lambda: [0.3])
     temperature: float = 0.1
     shrink_threshold: float = 10.0
+    query_volume: float = 3.0
 
 @dataclass
 class MCCConfig:

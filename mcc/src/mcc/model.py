@@ -139,7 +139,6 @@ class DecodeXYZPosEmbed(nn.Module):
     def forward(self, unseen_xyz):
         return self.pos_embed(unseen_xyz)
 
-
 class MCC(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
     """
@@ -163,7 +162,8 @@ class MCC(nn.Module):
                  granularity=0.05,
                  score_thresholds=[0.3],
                  temperature=0.1,
-                 shrink_threshold=10.0
+                 shrink_threshold=10.0,
+                 query_volume=3.0,
         ):
         
         super().__init__()
@@ -176,7 +176,8 @@ class MCC(nn.Module):
         self.score_thresholds = score_thresholds
         self.temperature = temperature
         self.shrink_threshold = shrink_threshold
-        # --------------------------------------------------------------------------
+        self.query_volume = query_volume
+
         # encoder specifics
         self.patch_embed = PatchEmbed(img_size, patch_size, in_chans, embed_dim)
         num_patches = self.patch_embed.num_patches
@@ -221,12 +222,14 @@ class MCC(nn.Module):
             ) for i in range(decoder_depth)])
 
         self.decoder_norm = norm_layer(decoder_embed_dim)
+
         if self.regress_color:
             self.decoder_pred = nn.Linear(decoder_embed_dim, 3 + 1, bias=True) # decoder to patch
         else:
             self.decoder_pred = nn.Linear(decoder_embed_dim, 256 * 3 + 1, bias=True) # decoder to patch
 
         self.loss_occupy = nn.BCEWithLogitsLoss()
+
         if self.regress_color:
             self.loss_rgb = nn.MSELoss()
         else:
@@ -235,7 +238,6 @@ class MCC(nn.Module):
         self.initialize_weights()
 
     def initialize_weights(self):
-
         pos_embed = get_2d_sincos_pos_embed(self.pos_embed.shape[-1], int(self.patch_embed.num_patches**.5), cls_token=True)
         self.pos_embed.data.copy_(torch.from_numpy(pos_embed).float().unsqueeze(0))
 
@@ -263,9 +265,7 @@ class MCC(nn.Module):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
 
-
     def forward_encoder(self, x, seen_xyz, valid_seen_xyz):
-
         # get tokens
         x = self.patch_embed(x)
         x = x + self.pos_embed[:, 1:, :]
@@ -341,24 +341,41 @@ class MCC(nn.Module):
     def clear_cache(self):
         self.cached_enc_feat = None
 
-    def forward(self, seen_images, seen_xyz, unseen_xyz, unseen_rgb, unseen_occupy, valid_seen_xyz,
-                cache_enc=False):
+    def forward(self, 
+                seen_images, 
+                seen_xyz, 
+                unseen_xyz, 
+                unseen_rgb, 
+                valid_seen_xyz, 
+                unseen_occupy=None,
+                cache_enc=False
+        ):
 
+        print('shapes: seen_images:', seen_images.shape, 'seen_xyz:', seen_xyz.shape, 'unseen_xyz:', unseen_xyz.shape, 'unseen_rgb:', unseen_rgb.shape)
+        print("FORWARD PASS STARTING...")
         unseen_xyz = shrink_points_beyond_threshold(unseen_xyz, self.shrink_threshold)
-
+        print('ENCODING')
         if self.cached_enc_feat is None:
             seen_images = preprocess_img(seen_images)
             seen_xyz = shrink_points_beyond_threshold(seen_xyz, self.shrink_threshold)
             latent = self.forward_encoder(seen_images, seen_xyz, valid_seen_xyz)
 
+        print('CACHING')
         if cache_enc:
             if self.cached_enc_feat is None:
                 self.cached_enc_feat = latent
             else:
                 latent = self.cached_enc_feat
 
+        print("DECODING")
         pred = self.forward_decoder(latent, unseen_xyz)
-        loss = self.forward_loss(pred, unseen_occupy, unseen_rgb)
+
+        print('LOSSING')
+        if unseen_occupy is not None:
+            loss = self.forward_loss(pred, unseen_occupy, unseen_rgb)
+        else:
+            loss = None
+
         return loss, pred
 
 class LayerScale(nn.Module):

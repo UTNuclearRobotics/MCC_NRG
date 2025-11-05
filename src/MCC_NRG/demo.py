@@ -158,7 +158,7 @@ if __name__ == '__main__':
     parser.add_argument('--point_cloud', default='demo/quest2.obj', type=str, help='input obj file')
     parser.add_argument('--seg', default='demo/quest2_seg.png', type=str, help='input obj file')
     parser.add_argument('--output', default='demo/output', type=str, help='output path')
-    parser.add_argument('--granularity', default=0.05, type=float, help='output granularity')
+    parser.add_argument('--granularity', default=0.25, type=float, help='output granularity')
     parser.add_argument('--score_thresholds', default=[0.1, 0.2, 0.3, 0.4, 0.5], type=float, nargs='+', help='score thresholds')
     parser.add_argument('--temperature', default=0.1, type=float, help='temperature for color prediction.')
     parser.add_argument('--checkpoint', default='co3dv2_all_categories.pth', type=str, help='model checkpoint')

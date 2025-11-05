@@ -4,7 +4,7 @@ def _load_checkpoint(path_or_url: str):
     
     if str(path_or_url).startswith(("http://", "https://")):
         return torch.hub.load_state_dict_from_url(path_or_url, map_location="cpu", check_hash=True)
-    return torch.load(path_or_url, map_location="cpu")
+    return torch.load(path_or_url, map_location="cpu", weights_only=False)
 
 def _extract_state_dict(ckpt: dict) -> dict:
     state = ckpt.get("model") or ckpt.get("state_dict") or ckpt
@@ -36,7 +36,7 @@ def load_model(model_config_path: str,
     cfg: MCCConfig = load_config(model_config_path)
     params = cfg.model
 
-    # Get devide
+    # Get device
     device = torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
 
     # Build model architecture
@@ -53,14 +53,14 @@ def load_model(model_config_path: str,
     if missing or unexpected:
         print(f"MCC load_state_dict\n missing: {missing}\n unexpected: {unexpected}")
 
-
-    # Compile the model 
-    print("Compiling model...")
-    model = torch.compile(model)
-
     print("Moving model to device...")
     model.to(device).eval()
 
+    # Compile the model 
+    #print("Compiling model...")
+    #model = torch.compile(model, mode='reduce-overhead', fullgraph=False)
+
+  
     print(f"MCC model loaded on {device}")
     print(f" - config: {model_config_path}")
     print(f" - checkpoint: {model_checkpoint_path}")
