@@ -122,6 +122,8 @@ class MCCPredictor:
             self.score_thresholds
         )
 
+        return clouds
+
     # --- helpers ---
     def _pad_image(self, im, value):
         if im.shape[0] > im.shape[1]:
@@ -181,16 +183,17 @@ class MCCPredictor:
         for t in score_thresholds:
             pos = pred_occ > t
 
-            pts = unseen_xyz[pos]
-            cols = pred_rgb[pos]
+            pts = unseen_xyz[pos].reshape((-1, 3))
+            cols = pred_rgb[None][pos].reshape((-1, 3))
 
             good = pts[:, 0] != -100
             if good.sum() == 0:
                 continue
 
             clouds['points'] = {
-                "xyz": pts[good].numpy().astype(np.float32),
-                "colors": cols[good].numpy().astype(np.float32)
+                "xyz": pts[good].cpu().numpy().astype(np.float32),
+                "colors": cols[good].cpu().numpy().astype(np.float32)
             }
-            
+
+        print(clouds["points"]['xyz'].shape)
         return clouds
